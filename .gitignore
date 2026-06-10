@@ -1,0 +1,22 @@
+# Exclude large daily stock price CSV datasets (these will auto-generate on launch)
+data/*.csv
+!data/stock_metadata.csv
+
+# Exclude python cache
+__pycache__/
+*.pyc
+
+# Exclude virtual environments and local settings
+.env
+.venv/
+env/
+venv/
+
+# Exclude model binaries (optional, but standard practice. Models will retrain on launch)
+models/*.pkl
+
+# Exclude system and IDE settings
+.vscode/
+.idea/
+.ipynb_checkpoints/
+.DS_Store
