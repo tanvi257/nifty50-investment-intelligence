@@ -1,6 +1,6 @@
 # NIFTY-50 AI-Powered Investment Intelligence Platform
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-app-name.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nifty50-investment-intelligence-4fcdepeafslwnzcguxsogh.streamlit.app/)
 
 An intelligent decision-support system that transforms raw historical NIFTY-50 stock market data and metadata into actionable trading, risk assessment, and portfolio optimization insights.
 
