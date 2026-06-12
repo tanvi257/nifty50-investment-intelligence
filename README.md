@@ -50,13 +50,15 @@ The platform relies on a data-driven pipeline:
 ## 3. Repository Structure
 
 ```
-nifty50_investment_intelligence/
-├── data/                        # Contains CSV data (Kaggle or synthetic)
-│   ├── stock_metadata.csv       # Sector/Company classifications
-│   ├── NIFTY50_all.csv          # Combined index dataset
-│   └── [SYMBOL].csv             # Individual stock history (RELIANCE.csv, TCS.csv, etc.)
-├── models/                      # Saved pre-trained pickle models
-├── src/                         # Source Code files
+nifty50_market_intelligence/
+├── .devcontainer/               # VS Code Development Container configuration
+│   └── devcontainer.json
+├── data/                        # Market datasets (Kaggle, NSE, or synthetic)
+│   ├── stock_metadata.csv       # Sector and company classifications
+│   ├── NIFTY50_all.csv          # Combined index historical dataset
+│   └── [SYMBOL].csv             # Individual stock history (e.g., RELIANCE.csv, TCS.csv)
+├── models/                      # Saved artifacts (Trained models, scalers, pickle files)
+├── src/                         # Core application source code
 │   ├── __init__.py
 │   ├── generate_mock_data.py    # Synthetic market data generator
 │   ├── data_loader.py           # Parsing, cleaning, and interpolating data
@@ -67,9 +69,12 @@ nifty50_investment_intelligence/
 │   ├── anomaly.py               # Volatility spikes & volume surge detectors
 │   ├── explainability.py        # Permutation importance & rule-based reasoning reports
 │   └── test_suite.py            # Unit test suite verifying modules
-├── app.py                       # Premium Streamlit web app dashboard
-├── requirements.txt             # Python dependencies
-└── README.md                    # Project documentation
+├── .gitignore                   # Files and folders to ignore in Git (e.g., venv, __pycache__)
+├── app.py                       # Main Streamlit web application dashboard
+├── nifty50_exploration_and_training.ipynb  # Interactive EDA and model prototyping (Google Colab)
+├── README.md                    # Project documentation and setup guide
+├── requirements.txt             # Python project dependencies
+└── technical report.pdf         # Comprehensive project documentation & analysis report
 ```
 
 ---
