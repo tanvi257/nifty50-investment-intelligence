@@ -13,7 +13,7 @@ from src.risk import RiskAssessor
 from src.anomaly import MarketAnomalyDetector
 from src.explainability import ExplainabilityEngine
 
-# 1. Page Configuration and Custom Styling
+# Page setup
 st.set_page_config(
     page_title="NIFTY-50 Investment Intelligence Platform",
     page_icon="📈",
@@ -21,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Premium dark theme styling overrides
+## Custom CSS overides for dark theme
 st.markdown("""
 <style>
     .reportview-container {
@@ -64,14 +64,10 @@ def init_platform_components():
     stock_data = loader.load_all_stocks()
     predictor = StockPredictorEngine()
     
-    # Financial Engineering Fix: Pre-train all missing models sequentially at startup.
-    # Because @st.cache_resource runs once globally, this blocks race conditions
-    # (PermissionError / FileLockError) from multiple threads trying to write models at the same time.
     for sym in stock_data.keys():
         reg_model, _, _ = predictor.load_model(sym, "regressor")
         clf_model, _, _ = predictor.load_model(sym, "classifier")
         if reg_model is None or clf_model is None:
-            # Sequentially train and save the model
             try:
                 predictor.train_models(stock_data[sym], sym)
             except Exception as e:
@@ -90,11 +86,10 @@ loader, metadata, stock_data, predictor, risk_assessor, anomaly_detector, explai
 def get_predictions_and_metrics(symbol):
     df_stock = stock_data[symbol]
     
-    # Load model and pre-saved metrics directly from disk (No I/O write operations here)
+    # Load model and pre-saved metrics directly from disk 
     reg_model, feat_cols, reg_metrics = predictor.load_model(symbol, "regressor")
     clf_model, _, clf_metrics = predictor.load_model(symbol, "classifier")
     
-    # Fallback to train sequentially if still not found
     if reg_model is None or clf_model is None:
         predictor.train_models(df_stock, symbol)
         reg_model, feat_cols, reg_metrics = predictor.load_model(symbol, "regressor")
@@ -126,20 +121,20 @@ def get_portfolio_allocations(profile, risk_free_rate):
     expected_returns_dict = {}
     for sym in stock_data.keys():
         try:
-            # Predict 5-day returns to tilt portfolio allocations if needed
+            # Predict 5day returns 
             p_res = predictor.predict(stock_data[sym], sym)
             expected_returns_dict[sym] = p_res["Predicted_5d_Return"]
         except:
             expected_returns_dict[sym] = 0.0
             
     portfolio = p_constructor.construct_portfolio(profile, expected_returns_dict, risk_free_rate)
-    cov_matrix = p_constructor.returns_df.cov() * 252 # Annualized
+    cov_matrix = p_constructor.returns_df.cov() * 252 
     
     return portfolio, cov_matrix
 
 global_anomalies = run_global_anomaly_detection()
 
-# 2. Sidebar Navigation and Controls
+# Sidebar Navigation and Controls
 st.sidebar.markdown("<h2 style='margin-top:0;'>⚙️ Settings</h2>", unsafe_allow_html=True)
 
 selected_symbol = st.sidebar.selectbox(
@@ -179,13 +174,12 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-# 3. Main Dashboard Layout
+# Main Dashboard Layout
 st.markdown("<h1 style='margin-bottom:0px;'>📈 NIFTY-50 Market Intelligence</h1>", unsafe_allow_html=True)
 st.markdown("<p style='color:#64748B; font-size:1.1rem; margin-top:5px; margin-bottom:25px;'>"
             "Deep analytics, predictive forecasting, risk monitoring, and portfolio optimization for NSE India blue-chips."
             "</p>", unsafe_allow_html=True)
 
-# Main tabs
 tab1, tab2, tab3, tab4 = st.tabs([
     "🔍 Market Overview & Anomalies", 
     "🤖 Stock Predictor & Explainable AI", 
@@ -193,24 +187,18 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🎯 Personalized Advisor"
 ])
 
-# Fetch data for current selected stock
 df_selected = stock_data[selected_symbol]
 meta_selected = metadata[metadata["Symbol"] == selected_symbol].iloc[0]
 
-# --- TAB 1: MARKET OVERVIEW & ANOMALIES ---
+# TAB 1: MARKET OVERVIEW & ANOMALIES 
 with tab1:
     col1, col2 = st.columns([2, 1])
     
     with col1:
         st.subheader(f"{meta_selected['Company Name']} ({selected_symbol}) — Price & Technical Overlays")
-        
-        # Add Technical Indicators
         df_indicators = compute_technical_indicators(df_selected)
-        
-        # Plotly Candlestick Chart with Moving Averages and Bollinger Bands
         fig = go.Figure()
         
-        # Candlesticks
         fig.add_trace(go.Candlestick(
             x=df_indicators['Date'],
             open=df_indicators['Open'],
@@ -219,13 +207,11 @@ with tab1:
             close=df_indicators['Close'],
             name="Price"
         ))
-        
-        # SMAs
+     
         fig.add_trace(go.Scatter(x=df_indicators['Date'], y=df_indicators['SMA_10'], line=dict(color='#38BDF8', width=1.2), name="SMA 10"))
         fig.add_trace(go.Scatter(x=df_indicators['Date'], y=df_indicators['SMA_50'], line=dict(color='#F59E0B', width=1.5), name="SMA 50"))
         fig.add_trace(go.Scatter(x=df_indicators['Date'], y=df_indicators['SMA_200'], line=dict(color='#EF4444', width=1.8), name="SMA 200"))
         
-        # Bollinger Bands
         fig.add_trace(go.Scatter(x=df_indicators['Date'], y=df_indicators['BB_Upper'], line=dict(color='#10B981', width=0.8, dash='dash'), name="Bollinger Upper"))
         fig.add_trace(go.Scatter(x=df_indicators['Date'], y=df_indicators['BB_Lower'], line=dict(color='#10B981', width=0.8, dash='dash'), name="Bollinger Lower"))
         
@@ -243,9 +229,6 @@ with tab1:
         
         # Risk Calculations
         stock_risk_assessor = RiskAssessor(risk_free_rate=risk_free_input)
-        
-        # Calculate benchmark returns by averaging all stocks' returns aligned by Date
-        # This resolves the 0.00 Beta bug and aligns with standard index benchmark returns
         returns_dict = {}
         for sym, df in stock_data.items():
             returns_dict[sym] = df.set_index("Date")["Close"].pct_change(fill_method=None).fillna(0)
@@ -253,8 +236,7 @@ with tab1:
         benchmark_series = returns_df.mean(axis=1)
         
         risk_metrics = stock_risk_assessor.calculate_stock_risk_metrics(df_selected, benchmark_series)
-        
-        # Display KPIs in custom container blocks
+ 
         last_close = df_selected["Close"].iloc[-1]
         prev_close = df_selected["Prev Close"].iloc[-1]
         price_change = ((last_close - prev_close) / prev_close) * 100
@@ -280,8 +262,7 @@ with tab1:
             <div class="metric-value">{risk_metrics.get('Volatility', 0)*100:.2f}%</div>
         </div>
         """, unsafe_allow_html=True)
-        
-        # Two columns for Sharpe/Sortino and Drawdown
+   
         sub_col1, sub_col2 = st.columns(2)
         with sub_col1:
             st.metric("Sharpe Ratio", f"{risk_metrics.get('Sharpe_Ratio', 0):.2f}")
@@ -322,9 +303,8 @@ with tab1:
                 hide_index=True
             )
 
-# --- TAB 2: STOCK PREDICTOR & EXPLAINABLE AI ---
+# TAB 2: STOCK PREDICTOR & EXPLAINABLE AI 
 with tab2:
-    # Trigger model training/retrieval
     try:
         pred_res, reg_metrics, clf_metrics, importance_df = get_predictions_and_metrics(selected_symbol)
         
@@ -397,14 +377,10 @@ with tab2:
     except Exception as e:
         st.error(f"Error executing predictive models for {selected_symbol}: {e}")
 
-# --- TAB 3: PORTFOLIO CONSTRUCTION ---
+# TAB 3: PORTFOLIO CONSTRUCTION 
 with tab3:
     st.subheader(f"Optimal Asset Allocation: {investor_profile} Profile")
-    
-    # Get Cached Portfolio Allocations and Covariance
     portfolio, cov_matrix = get_portfolio_allocations(investor_profile, risk_free_input)
-    
-    # 1. Dynamic Top Allocations Metrics Row (Horizontal layout)
     allocs_df = portfolio["Allocations"]
     st.markdown("### 🏆 Top Portfolio Asset Allocations")
     top_allocs = allocs_df.head(4)
@@ -421,7 +397,6 @@ with tab3:
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        # Portfolio Allocations Pie Chart
         fig_pie = px.pie(
             allocs_df,
             values="Weight",
@@ -436,7 +411,7 @@ with tab3:
         st.plotly_chart(fig_pie, use_container_width=True)
         
     with col2:
-        # Portfolio statistics block (Risk-Free rate pulls dynamically with correct 2-decimal formatting)
+        # Portfolio statistics block 
         sharpe_ratio = portfolio['Sharpe_Ratio']
         
         st.markdown(f"""
@@ -452,7 +427,7 @@ with tab3:
         </div>
         """, unsafe_allow_html=True)
         
-        # 2. Legibly handle and explain negative Sharpe Ratios
+        # Legibly handle and explain negative Sharpe Ratios
         if sharpe_ratio < 0:
             st.caption(
                 "⚠️ **Note:** The negative Sharpe ratio indicates the portfolio's expected return "
@@ -470,7 +445,6 @@ with tab3:
     alloc_col, cov_col = st.columns([1, 1.2])
     
     with alloc_col:
-        # Allocations Table
         st.markdown("**Allocation Weights Table**")
         st.dataframe(
             allocs_df.style.format({"Weight": "{:.2%}"}),
@@ -479,7 +453,7 @@ with tab3:
         )
         
     with cov_col:
-        # Covariance Heatmap (pulls precalculated cov_matrix)
+        # Covariance Heatmap 
         st.markdown("**Historical Stock Returns Covariance Matrix Heatmap**")
         
         fig_heat = px.imshow(
@@ -493,7 +467,7 @@ with tab3:
         fig_heat.update_layout(height=350, margin=dict(l=10, r=10, t=10, b=10))
         st.plotly_chart(fig_heat, use_container_width=True)
 
-# --- TAB 4: PERSONALIZED ADVISOR ---
+#TAB 4: PERSONALIZED ADVISOR 
 with tab4:
     st.subheader("🎯 Personalized Investment Strategy Recommendation Engine")
     st.write("Complete the profiling questions below to generate a tailored allocation and investment strategy.")
@@ -554,7 +528,7 @@ with tab4:
         st.markdown(f"### Recommended Strategic Profile: **{recommended_profile} Portfolio**")
         st.markdown(f"**Target Strategic Mix:** {target_allocation}")
         
-        # Pull allocation details from Tab 3 module (cached)
+        # Pull allocation details from Tab 3 module 
         rec_portfolio, _ = get_portfolio_allocations(recommended_profile, risk_free_input)
         
         advisor_col1, advisor_col2 = st.columns([1, 1.2])
