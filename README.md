@@ -82,8 +82,8 @@ nifty50_investment_intelligence/
 ### Steps
 1. **Clone or navigate** to the project workspace directory:
    ```bash
- git clone [https://github.com/tanvi257/nifty50-investment-intelligence.git](https://github.com/tanvi257/nifty50-investment-intelligence.git)
-cd nifty50-investment-intelligencel
+   git clone [https://github.com/tanvi257/nifty50-investment-intelligence.git](https://github.com/tanvi257/nifty50-investment-intelligence.git)
+   cd nifty50-investment-intelligencel
    ```
 
 2. **Install Python dependencies** listed in `requirements.txt`:
