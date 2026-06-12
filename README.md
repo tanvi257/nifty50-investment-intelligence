@@ -13,33 +13,38 @@ This platform leverages 20+ years of historical NIFTY-50 market data (spanning J
 * **Predictive Forecasting**: Predicting 5-day forward price returns and movement direction.
 * **Risk Assessment**: Calculating annualized volatility, Sharpe/Sortino ratios, Maximum Drawdowns, and systematic Risk Beta.
 * **Diversified Portfolio Construction**: Formulating optimized portfolios tailored to Conservative, Balanced, and Aggressive profiles.
-* **Explainability**: Applying machine learning feature importances and rule-based explanations for transparency.
+* **Explainability**: Applying machine learning feature importances and rulebased explanations for transparency.
 * **Anomaly Detection**: Identifying extreme volatility spikes, volume surges, and drawdowns.
 
 ---
 
 ## 2. Quantitative Approach & Methodology
-The platform relies on a modular, data-driven pipeline:
+
+The platform relies on a data-driven pipeline:
+
 1. **Feature Engineering**: Calculates a wide matrix of technical indicators:
    * *Trend*: 10-day, 50-day, and 200-day SMAs, EMA crossings.
    * *Momentum*: 14-day RSI, MACD histograms, Rate of Change (ROC).
    * *Volatility*: Bollinger Bands and 20-day annualized rolling volatility.
    * *Volume*: Rolling volume averages and ratios.
+
 2. **Machine Learning Predictor Engine**:
    * *Target 1 (Return)*: Forecasts 5-day forward returns using a **Gradient Boosting Regressor** (`HistGradientBoostingRegressor`).
    * *Target 2 (Direction)*: Predicts whether the stock moves up or down using a **Gradient Boosting Classifier** (`HistGradientBoostingClassifier`).
    * *Evaluation*: Evaluates models using MAE, RMSE, and $R^2$ for regression, and Accuracy, F1-Score, and ROC AUC for classification. Uses a time-series split to prevent data leakage.
+
 3. **Portfolio Optimization**:
    * *Conservative Profile*: Solves for the Minimum Variance portfolio using SciPy's sequential quadratic programming (`SLSQP`) solver.
    * *Balanced Profile*: Optimizes asset weights to maximize the portfolio Sharpe Ratio.
    * *Aggressive Profile*: Allocates capital based on highest-ranked expected stock returns and positive momentum indicators.
+
 4. **Explainable AI (XAI)**:
    * Calculates **Permutation Feature Importance** on the test dataset to rank feature drivers.
    * Employs a rule-based expert system translating technical states into plain-English reasoning.
+
 5. **Anomaly Detection**:
    * Flags daily returns exceeding 3 standard deviations from rolling averages (Volatility Spikes).
    * Flags daily volume exceeding 3x of the 20-day SMA (Volume Surges).
-
 ---
 
 ## 3. Repository Structure
@@ -77,7 +82,8 @@ nifty50_investment_intelligence/
 ### Steps
 1. **Clone or navigate** to the project workspace directory:
    ```bash
-   cd C:\Users\TANVI\.gemini\antigravity\scratch\nifty50_investment_intelligence
+ git clone [https://github.com/tanvi257/nifty50-investment-intelligence.git](https://github.com/tanvi257/nifty50-investment-intelligence.git)
+cd nifty50-investment-intelligencel
    ```
 
 2. **Install Python dependencies** listed in `requirements.txt`:
